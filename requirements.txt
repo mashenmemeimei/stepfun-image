@@ -1,1 +1,4 @@
 requests>=2.31
+
+# dev / tests
+-r requirements-dev.txt
