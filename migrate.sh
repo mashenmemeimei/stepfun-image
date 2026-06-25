@@ -7,19 +7,20 @@
 #
 # What it does:
 #   1. Creates a venv (optional but recommended)
-#   2. pip install -e . so `python -m stepfun_image.cli` works from anywhere
-#   3. Installs the SKILL.md into ~/.claude/skills/stepfun-image/
+#   2. pip install -e . so `python -m stepfun_image.cli` and
+#      `python -m stepfun_audio.cli` work from anywhere
+#   3. Installs all SKILL.md files under skill/ into ~/.claude/skills/
+#      (skill/SKILL.md         -> stepfun-image
+#       skill/audio/SKILL.md   -> stepfun-audio)
 #   4. Runs `whoami` to verify key resolution
 
 set -euo pipefail
 
 PROJECT_DIR="${STEPFUN_HOME:-$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)}"
-SKILL_SRC="$PROJECT_DIR/skill/SKILL.md"
-SKILL_DST_DIR="${HOME}/.claude/skills/stepfun-image"
-SKILL_DST="$SKILL_DST_DIR/SKILL.md"
+SKILLS_DIR="${HOME}/.claude/skills"
 
 echo "==> project: $PROJECT_DIR"
-echo "==> skill target: $SKILL_DST"
+echo "==> skills root: $SKILLS_DIR"
 
 # 1. venv (best-effort, ignore if already in one)
 if [[ -z "${VIRTUAL_ENV:-}" && ! -d "$PROJECT_DIR/.venv" ]]; then
@@ -33,18 +34,31 @@ fi
 echo "==> pip install -e ."
 python -m pip install -e "$PROJECT_DIR"
 
-# 3. drop skill file
-if [[ -f "$SKILL_SRC" ]]; then
-  mkdir -p "$SKILL_DST_DIR"
-  cp "$SKILL_SRC" "$SKILL_DST"
-  echo "==> skill installed at $SKILL_DST"
-else
-  echo "!! SKILL.md not found at $SKILL_SRC — copy it manually to $SKILL_DST"
-fi
+# 3. drop all SKILL.md files: map layout skill/X/SKILL.md -> stepfun-X
+#    and skill/SKILL.md -> stepfun-image
+install_skill() {
+  local src="$1"
+  local name="$2"
+  local dst_dir="$SKILLS_DIR/$name"
+  local dst="$dst_dir/SKILL.md"
+  if [[ ! -f "$src" ]]; then
+    echo "!! $src not found — skipping"
+    return
+  fi
+  mkdir -p "$dst_dir"
+  cp "$src" "$dst"
+  echo "   - $name installed at $dst"
+}
+
+echo "==> installing skills"
+install_skill "$PROJECT_DIR/skill/SKILL.md" "stepfun-image"
+install_skill "$PROJECT_DIR/skill/audio/SKILL.md" "stepfun-audio"
 
 # 4. verify key
 echo "==> whoami"
 python -m stepfun_image.cli whoami
 
 echo
-echo "Done. Try:  python -m stepfun_image.cli t2i \"hello\" -o /tmp/hello.png"
+echo "Done. Try:"
+echo "  python -m stepfun_image.cli t2i \"hello\" -o /tmp/hello.png"
+echo "  python -m stepfun_audio.cli tts \"hello\" -o /tmp/hello.mp3"
