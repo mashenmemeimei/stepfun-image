@@ -20,7 +20,7 @@ API Key **不**写进代码、不进仓库 —— 自动从 CCSwitch (`~/.cc-swi
 ## 项目结构
 
 ```
-stepfun-image/
+stepfun-multimodal/
 ├── stepfun_image/
 │   ├── __init__.py
 │   ├── ccswitch.py     # 从 CCSwitch SQLite 读 Key
@@ -36,7 +36,7 @@ stepfun-image/
 ## 安装
 
 ```bash
-cd D:/Projects/stepfun-image
+cd D:/Projects/stepfun-multimodal
 pip install -r requirements.txt
 # 可选：注册为 console_script
 pip install -e .
